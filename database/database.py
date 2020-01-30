@@ -42,3 +42,19 @@ class Database:
             cat = x[7]
 
         return User(id, name, nickname, ep, email, notes, abrevs, cat)
+
+    def userRegister(self):
+        print("cc")
+
+    def userLogin(self, identifier, password):
+        sql = "SELECT * FROM notepad WHERE (nickname = %s OR email = %s) AND encrypted_password = %s"
+        val = (identifier, identifier, password, )
+        self.cursor.execute(sql, val)
+        result = self.cursor.fetchone()
+
+        if result:
+            print("Logged in !")
+            return self.getUser(identifier)
+        else:
+            print("Incorrect username/password!")
+

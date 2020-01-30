@@ -5,9 +5,10 @@ from user.user import User
 class Main:
     db = Database()
     db.connect()
-    # db.createNewUser("michel", "bonjour", "cc", "cc", "cc", "cc", "cc")
 
-    user = db.getUser("bonjour")
+    id = input("Nom d'utilisateur ou email : ")
+    pswd = input("Mot de passe : ")
+    user = db.userLogin(id, pswd)
 
     print(user.name)
     print(user.nickname)

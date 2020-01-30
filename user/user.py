@@ -1,5 +1,4 @@
 
-
 class User:
 
     def __init__(self, id, name, nickname, encrypted_password, email, notes, abrevs, categories):
@@ -11,3 +10,4 @@ class User:
         self.notes = notes
         self.abrevs = abrevs
         self.categories = categories
+
