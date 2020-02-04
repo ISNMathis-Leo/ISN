@@ -1,4 +1,5 @@
 import mysql.connector
+import hashlib
 from user.user import User
 
 
@@ -10,20 +11,12 @@ class Database:
 
     def connect(self):
         self.db = mysql.connector.connect(
-            host="remotemysql.com",
-            user="9Nxz1gWfXK",
-            passwd="7zrnREDcJr",
-            database="9Nxz1gWfXK"
+            host="91.121.157.83",
+            user="arkcos",
+            passwd="qBTzPqI5xWXPyyIX",
+            database="arkcos"
         )
-
         self.cursor = self.db.cursor()
-
-    def createNewUser(self, name, nickname, encrypted_password, email, notes, abrevs, categories):
-        sql = "INSERT INTO notepad (name, nickname, encrypted_password, email, notes, abrevs, categories) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        val = (name, nickname, encrypted_password, email, notes, abrevs, categories)
-        self.cursor.execute(sql, val)
-        self.db.commit()
-        print("done")
 
     def getUser(self, identifier):
         sql = "SELECT * FROM notepad WHERE nickname = %s OR email = %s"
@@ -43,12 +36,10 @@ class Database:
 
         return User(id, name, nickname, ep, email, notes, abrevs, cat)
 
-    def userRegister(self):
-        print("cc")
-
     def userLogin(self, identifier, password):
+        encrypted_password = hashlib.sha256(password.encode())
         sql = "SELECT * FROM notepad WHERE (nickname = %s OR email = %s) AND encrypted_password = %s"
-        val = (identifier, identifier, password, )
+        val = (identifier, identifier, encrypted_password.hexdigest(), )
         self.cursor.execute(sql, val)
         result = self.cursor.fetchone()
 
@@ -57,4 +48,13 @@ class Database:
             return self.getUser(identifier)
         else:
             print("Incorrect username/password!")
+
+    def userCreate(self, name, username, password, email):
+        encrypted_password = hashlib.sha256(password.encode())
+        sql = "INSERT INTO `notepad`(`name`, `nickname`, `encrypted_password`, `email`, `notes`, `abrevs`, " \
+              "`categories`) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+        val = (name, username, encrypted_password.hexdigest(), email, "", "", "")
+        self.cursor.execute(sql, val)
+        self.db.commit()
+
 

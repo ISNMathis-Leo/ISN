@@ -10,4 +10,3 @@ class User:
         self.notes = notes
         self.abrevs = abrevs
         self.categories = categories
-

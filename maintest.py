@@ -1,14 +1,17 @@
 from database.database import Database
-from user.user import User
+from user.user import *
 
 
-class Main:
-    db = Database()
-    db.connect()
-
+def login(db):
+    global user
     id = input("Nom d'utilisateur ou email : ")
     pswd = input("Mot de passe : ")
     user = db.userLogin(id, pswd)
 
-    print(user.name)
-    print(user.nickname)
+
+class Main:
+    db = Database()
+    user = None
+
+    db.connect()
+    login(db)
