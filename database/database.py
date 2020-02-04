@@ -50,11 +50,22 @@ class Database:
             print("Incorrect username/password!")
 
     def userCreate(self, name, username, password, email):
-        encrypted_password = hashlib.sha256(password.encode())
-        sql = "INSERT INTO `notepad`(`name`, `nickname`, `encrypted_password`, `email`, `notes`, `abrevs`, " \
-              "`categories`) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-        val = (name, username, encrypted_password.hexdigest(), email, "", "", "")
+
+        sql = "SELECT nickname, email FROM notepad WHERE nickname= %s OR email = %s"
+        val = (username, email)
         self.cursor.execute(sql, val)
-        self.db.commit()
+        result = self.cursor.fetchone()
+
+        if result:
+            print("Username or Email already used !")
+        else:
+            encrypted_password = hashlib.sha256(password.encode())
+            sql = "INSERT INTO `notepad`(`name`, `nickname`, `encrypted_password`, `email`, `notes`, `abrevs`, " \
+                  "`categories`) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+            val = (name, username, encrypted_password.hexdigest(), email, "", "", "")
+            self.cursor.execute(sql, val)
+            self.db.commit()
+
+
 
 
