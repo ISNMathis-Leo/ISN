@@ -1,25 +1,31 @@
 import hashlib
 
-from maintest import Main
-
 
 class User:
-    def __init__(self, id, name, nickname, encrypted_password, email, notes, abrevs, categories):
+    db = None
+
+    def __init__(self, id, name, username, password, email, notes, abrevs, categories):
+
         self.id = id
         self.name = name
-        self.nickname = nickname
-        self.encrypted_password = encrypted_password
+        self.username = username
+        self.password = password
         self.email = email
         self.notes = notes
         self.abrevs = abrevs
         self.categories = categories
 
     @classmethod
+    def setDatabase(cls, database):
+        global db
+        db = database
+
+    @classmethod
     def getUser(cls, identifier):
-        sql = "SELECT * FROM notepad WHERE nickname = %s OR email = %s"
-        val = (identifier, identifier,)
-        Main.db.cursor.execute(sql, val)
-        result = Main.db.cursor.fetchall()
+        sql = "SELECT * FROM notepad WHERE nickname = %s OR email = %s OR id = %s"
+        val = (identifier, identifier, identifier)
+        db.cursor.execute(sql, val)
+        result = db.cursor.fetchall()
 
         for x in result:
             id = x[0]
@@ -34,12 +40,12 @@ class User:
         return User(id, name, nickname, ep, email, notes, abrevs, cat)
 
     @classmethod
-    def userLogin(cls, identifier, password):
+    def login(cls, identifier, password):
         encrypted_password = hashlib.sha256(password.encode())
         sql = "SELECT * FROM notepad WHERE (nickname = %s OR email = %s) AND encrypted_password = %s"
         val = (identifier, identifier, encrypted_password.hexdigest(),)
-        Main.db.cursor.execute(sql, val)
-        result = Main.db.cursor.fetchone()
+        db.cursor.execute(sql, val)
+        result = db.cursor.fetchone()
 
         if result:
             print("Logged in !")
@@ -47,20 +53,18 @@ class User:
         else:
             print("Incorrect username/password!")
 
-    @classmethod
-    def userCreate(cls, name, username, password, email):
-
+    def createAndPush(self):
         sql = "SELECT nickname, email FROM notepad WHERE nickname= %s OR email = %s"
-        val = (username, email)
-        Main.db.execute(sql, val)
-        result = Main.db.cursor.fetchone()
+        val = (self.username, self.email)
+        db.cursor.execute(sql, val)
+        result = db.cursor.fetchone()
 
         if result:
             print("Username or Email already used !")
         else:
-            encrypted_password = hashlib.sha256(password.encode())
+            encrypted_password = hashlib.sha256(self.password.encode())
             sql = "INSERT INTO `notepad`(`name`, `nickname`, `encrypted_password`, `email`, `notes`, `abrevs`, " \
                   "`categories`) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-            val = (name, username, encrypted_password.hexdigest(), email, "", "", "")
-            Main.db.cursor.execute(sql, val)
-            Main.db.db.commit()
+            val = (self.name, self.username, encrypted_password.hexdigest(), self.email, "", "", "")
+            db.cursor.execute(sql, val)
+            db.db.commit()
