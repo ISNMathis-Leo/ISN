@@ -1,19 +1,18 @@
 import hashlib
+import json
+from user.note import Note
 
 
 class User:
     db = None
 
-    def __init__(self, id, name, username, password, email, notes, abrevs, categories):
+    def __init__(self, id, name, username, password, email):
 
         self.id = id
         self.name = name
         self.username = username
         self.password = password
         self.email = email
-        self.notes = notes
-        self.abrevs = abrevs
-        self.categories = categories
 
     @classmethod
     def setDatabase(cls, database):
@@ -22,7 +21,7 @@ class User:
 
     @classmethod
     def getUser(cls, identifier):
-        sql = "SELECT * FROM notepad WHERE nickname = %s OR email = %s OR id = %s"
+        sql = "SELECT * FROM users WHERE nickname = %s OR email = %s OR id = %s"
         val = (identifier, identifier, identifier)
         db.cursor.execute(sql, val)
         result = db.cursor.fetchall()
@@ -33,16 +32,13 @@ class User:
             nickname = x[2]
             ep = x[3]
             email = x[4]
-            notes = x[5]
-            abrevs = x[6]
-            cat = x[7]
 
-        return User(id, name, nickname, ep, email, notes, abrevs, cat)
+        return User(id, name, nickname, ep, email)
 
     @classmethod
     def login(cls, identifier, password):
         encrypted_password = hashlib.sha256(password.encode())
-        sql = "SELECT * FROM notepad WHERE (nickname = %s OR email = %s) AND encrypted_password = %s"
+        sql = "SELECT * FROM users WHERE (nickname = %s OR email = %s) AND encrypted_password = %s"
         val = (identifier, identifier, encrypted_password.hexdigest(),)
         db.cursor.execute(sql, val)
         result = db.cursor.fetchone()
@@ -54,7 +50,7 @@ class User:
             print("Incorrect username/password!")
 
     def createAndPush(self):
-        sql = "SELECT nickname, email FROM notepad WHERE nickname= %s OR email = %s"
+        sql = "SELECT nickname, email FROM users WHERE nickname= %s OR email = %s"
         val = (self.username, self.email)
         db.cursor.execute(sql, val)
         result = db.cursor.fetchone()
@@ -63,8 +59,28 @@ class User:
             print("Username or Email already used !")
         else:
             encrypted_password = hashlib.sha256(self.password.encode())
-            sql = "INSERT INTO `notepad`(`name`, `nickname`, `encrypted_password`, `email`, `notes`, `abrevs`, " \
-                  "`categories`) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-            val = (self.name, self.username, encrypted_password.hexdigest(), self.email, "", "", "")
+            sql = "INSERT INTO `users`(`name`, `nickname`, `encrypted_password`, `email`  VALUES (%s,%s,%s,%s)"
+            val = (self.name, self.username, encrypted_password.hexdigest(), self.email)
             db.cursor.execute(sql, val)
             db.db.commit()
+
+    def loadNotes(self):
+        global notes
+        sql = "SELECT notes FROM notes WHERE account_id= %s"
+        val = (self.id,)
+        db.cursor.execute(sql, val)
+        result = db.cursor.fetchone()
+
+        json_dict = json.loads(result[0])
+
+        print(len(json_dict["notes"]))
+
+        notes = []
+
+        for i in range(0, len(json_dict["notes"])):
+            notes.append(
+                Note(json_dict["notes"][i]["id"], json_dict["notes"][i]["title"], json_dict["notes"][i]["category"],
+                     json_dict["notes"][i]["creation_date"], json_dict["notes"][i]["last_edit_date"],
+                     json_dict["notes"][i]["content"]))
+
+        return notes;

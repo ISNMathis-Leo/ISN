@@ -9,6 +9,5 @@ class Main:
 
     User.setDatabase(db)
 
-    user = User.login("cc", "cc2")
-
-    # User.userCreate("Adam Cavillon", "dandan2611", "salutlesbogos", "dindon@gmail.com")
+    user = User.login("cc", "cc")
+    notes = user.loadNotes()
