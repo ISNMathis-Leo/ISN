@@ -49,7 +49,7 @@ class User:
         else:
             print("Incorrect username/password!")
 
-    def createAndPush(self):
+    def createAccountAndPush(self):
         sql = "SELECT nickname, email FROM users WHERE nickname= %s OR email = %s"
         val = (self.username, self.email)
         db.cursor.execute(sql, val)
@@ -71,16 +71,54 @@ class User:
         db.cursor.execute(sql, val)
         result = db.cursor.fetchone()
 
-        json_dict = json.loads(result[0])
+        if result is None:
+            return []
+        else:
+            json_dict = json.loads(result[0])
 
-        print(len(json_dict["notes"]))
+            notes = []
+            for i in range(0, len(json_dict["notes"])):
+                notes.append(
+                    Note(json_dict["notes"][i]["id"], json_dict["notes"][i]["title"], json_dict["notes"][i]["category"],
+                         json_dict["notes"][i]["creation_date"], json_dict["notes"][i]["last_edit_date"],
+                         json_dict["notes"][i]["content"]))
 
-        notes = []
+            return notes
 
-        for i in range(0, len(json_dict["notes"])):
-            notes.append(
-                Note(json_dict["notes"][i]["id"], json_dict["notes"][i]["title"], json_dict["notes"][i]["category"],
-                     json_dict["notes"][i]["creation_date"], json_dict["notes"][i]["last_edit_date"],
-                     json_dict["notes"][i]["content"]))
+    def createNoteAndPush(self, id, title, category_id, current_date, content):
 
-        return notes;
+        sql = "SELECT notes FROM notes WHERE account_id= %s"
+        val = (self.id,)
+        db.cursor.execute(sql, val)
+        result = db.cursor.fetchone()
+
+        if result is None:
+
+            data = {"notes": [{"id": id, "title": title, "category": category_id, "creation_date": current_date,
+                               "last_edit_date": current_date, "content": content}]}
+            data_dump = json.dumps(data)
+
+            sql = "INSERT INTO `notes`(`account_id`, `notes`) VALUES (%s, %s)"
+            val = (self.id, data_dump,)
+
+            db.cursor.execute(sql, val)
+            db.db.commit()
+
+        else:
+
+            data = {"id": id, "title": title, "category": category_id, "creation_date": current_date,
+                    "last_edit_date": current_date, "content": content}
+
+            json_dict = json.loads(result[0])
+            json_dict["notes"].append(data)
+
+            json_dump = json.dumps(json_dict)
+
+
+            print(json_dump)
+
+            sql = "UPDATE notes SET notes = %s WHERE account_id = %s"
+            val = (json_dump, self.id)
+
+            db.cursor.execute(sql, val)
+            db.db.commit()

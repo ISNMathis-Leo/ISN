@@ -10,4 +10,7 @@ class Main:
     User.setDatabase(db)
 
     user = User.login("cc", "cc")
+    notes = user.createNoteAndPush("cc", "cc", "cc", "cc", "cc")
     notes = user.loadNotes()
+
+    #print(notes[3].content)
