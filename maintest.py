@@ -11,19 +11,21 @@ class Main:
 
     user = User.login("cc", "cc")
 
-    # user.createNoteAndPush("cc", "cc", "cc", "cc")
-
     user.pushOfflineNotes()
-    notes = user.loadNotes()
+    notesList = user.loadNotes()
     user.downloadNotes()
 
+    # user.createNoteAndPush("cc", "cc", "cc", "cc")
 
-    for i in range(0, len(notes)):
+    user.editNote(0, "bg", 2, "michel", "bisou22222s")
+
+
+    for i in range(0, len(notesList)):
         print("")
-        print(notes[i].id)
-        print(notes[i].title)
-        print(notes[i].content)
-        print(notes[i].category)
-        print(notes[i].creation_date)
+        print(notesList[i].id)
+        print(notesList[i].title)
+        print(notesList[i].content)
+        print(notesList[i].category)
+        print(notesList[i].creation_date)
 
     #print(notes[3].content)
