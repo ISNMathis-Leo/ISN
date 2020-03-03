@@ -4,6 +4,7 @@ import os
 import random
 
 from user.note import Note
+from files.filemanager import FileManager
 
 
 class User:
@@ -86,8 +87,6 @@ class User:
 
         global notes
 
-        env = os.getenv('APPDATA')
-
         if db.connected is True:
 
             notes = []
@@ -116,18 +115,17 @@ class User:
             files = []
             notes = []
 
-            for file in os.listdir(env + "\\Notepad\\Cache\\Offline"):
+            for file in os.listdir(FileManager.offline):
                 if file.startswith("offline_"):
-                    files.append("Offline\\" + os.path.basename(file))
+                    files.append("offline\\" + os.path.basename(file))
 
-            for file in os.listdir(env + "\\Notepad\\Cache"):
+            for file in os.listdir(FileManager.notes):
                 if file.endswith(".json"):
                     files.append(os.path.basename(file))
 
             for i in range(0, len(files)-1):
-                with open(env + "\\Notepad\\Cache\\" + files[i], 'r') as content_file:
+                with open(FileManager.notes + "\\" + files[i], 'r') as content_file:
                     content = content_file.read()
-                    # print("allo   " + content)
                     json_dict = json.loads(content)
                     notes.append(
                         Note(json_dict["id"], json_dict["title"], json_dict["category"], json_dict["creation_date"],
@@ -136,8 +134,6 @@ class User:
             return notes
 
     def downloadNotes(self):
-
-        env = os.getenv('APPDATA')
 
         if db.connected is True:
 
@@ -160,19 +156,17 @@ class User:
                                  "content": json_dict["notes"][i]["content"]}
                     data_file_dump = json.dumps(data_file)
 
-                    file = open(env + "\\Notepad\\Cache\\" + str(json_dict["notes"][i]["id"]) + ".json", "w+")
+                    file = open(FileManager.notes + "\\" + str(json_dict["notes"][i]["id"]) + ".json", "w+")
                     file.write(data_file_dump)
                     file.close()
 
     def pushOfflineNotes(self):
 
-        env = os.getenv('APPDATA')
-
         if db.connected is True:
 
-            for file in os.listdir(env + "\\Notepad\\Cache\\Offline"):
+            for file in os.listdir(FileManager.offline):
                 if file.startswith("offline_"):
-                    with open(env + "\\Notepad\\Cache\\Offline\\" + os.path.basename(file), 'r') as content_file:
+                    with open(FileManager.offline + "\\" + os.path.basename(file), 'r') as content_file:
                         content = content_file.read()
                         json_dict = json.loads(content)
 
@@ -180,16 +174,16 @@ class User:
                                                json_dict["content"])
 
                         content_file.close()
-                        os.remove(env + "\\Notepad\\Cache\\Offline\\" + os.path.basename(file))
+                        os.remove(FileManager.offline + "\\" + os.path.basename(file))
 
             sql = "SELECT notes FROM notes WHERE account_id= %s"
             val = (self.id,)
             db.cursor.execute(sql, val)
             result = db.cursor.fetchone()
 
-            for file in os.listdir(env + "\\Notepad\\Cache\\Edits"):
+            for file in os.listdir(FileManager.edits):
                 if file.endswith(".json"):
-                    with open(env + "\\Notepad\\Cache\\" + os.path.basename(file), 'r') as content_file:
+                    with open(FileManager.notes + "\\" + os.path.basename(file), 'r') as content_file:
                         content = content_file.read()
                         json_file_dict = json.loads(content)
                         json_db_dict = json.loads(result[0])
@@ -204,20 +198,13 @@ class User:
 
                             self.editNote(json_file_dict["id"], json_file_dict["title"], json_file_dict["category"], json_file_dict["last_edit_date"], json_file_dict["content"])
                             content_file.close()
-                            os.remove(env + "\\Notepad\\Cache\\Edits\\" + str(json_file_dict["id"]) + ".json")
+                            os.remove(FileManager.edits + "\\" + str(json_file_dict["id"]) + ".json")
 
                         else:
 
                             print("La note a été modifiée depuis un autre poste")
 
     def createNoteAndPush(self, title, category_id, current_date, content):
-
-        env = os.getenv('APPDATA')
-
-        if not os.path.exists(env + r'\Notepad'):
-            os.makedirs(env + r'\Notepad')
-        if not os.path.exists(env + r'\Notepad\Cache'):
-            os.makedirs(env + r'\Notepad\Cache')
 
         if db.connected is True:
 
@@ -246,7 +233,7 @@ class User:
                              "last_edit_date": current_date, "content": content}
                 data_file_dump = json.dumps(data_file)
 
-                file = open(env + "\\Notepad\\Cache\\" + str(id) + ".json", "w+")
+                file = open(FileManager.notes + "\\" + str(id) + ".json", "w+")
                 file.write(data_file_dump)
                 file.close()
 
@@ -281,25 +268,22 @@ class User:
                              "last_edit_date": current_date, "content": content}
                 data_file_dump = json.dumps(data_file)
 
-                file = open(env + "\\Notepad\\Cache\\" + str(id) + ".json", "w+")
+                file = open(FileManager.notes + "\\" + str(id) + ".json", "w+")
                 file.write(data_file_dump)
                 file.close()
 
         else:
 
-            if not os.path.exists(env + r'\Notepad\Cache\Offline'):
-                os.makedirs(env + r'\Notepad\Cache\Offline')
-
             offline_id = random.randint(0, 999999)
 
-            while os.path.isfile(env + "\\Notepad\\Cache\\Offline\\" + str(offline_id) + ".json"):
+            while os.path.isfile(FileManager.offline + "\\" + str(offline_id) + ".json"):
                 offline_id = random.randint(0, 999999)
 
             data_file = {"id": "offline_" + str(offline_id), "title": title, "category": category_id, "creation_date": current_date,
                         "last_edit_date": current_date, "content": content}
             data_file_dump = json.dumps(data_file)
 
-            file = open(env + "\\Notepad\\Cache\\Offline\\offline_" + str(offline_id) + ".json", "w+")
+            file = open(FileManager.offline + "\\offline_" + str(offline_id) + ".json", "w+")
             file.write(data_file_dump)
             file.close()
 
@@ -339,11 +323,9 @@ class User:
 
         else:
 
-            env = os.getenv('APPDATA')
-
             if str(note.id).startswith("offline_"):
 
-                file = open(env + "\\Notepad\\Cache\\Offline\\" + str(note.id) + ".json", "r")
+                file = open(FileManager.offline + "\\" + str(note.id) + ".json", "r")
 
                 json_dict = json.loads(file.read())
 
@@ -360,17 +342,14 @@ class User:
 
                 print(json_dump)
 
-                file = open(env + "\\Notepad\\Cache\\Offline\\" + str(note.id) + ".json", "w+")
+                file = open(FileManager.offline + "\\" + str(note.id) + ".json", "w+")
 
                 file.write(json_dump)
                 file.close()
 
             else:
 
-                if not os.path.exists(env + r'\Notepad\Cache\Edits'):
-                    os.makedirs(env + r'\Notepad\Cache\Edits')
-
-                file = open(env + "\\Notepad\\Cache\\" + str(note.id) + ".json", "r")
+                file = open(FileManager.notes + "\\" + str(note.id) + ".json", "r")
 
                 json_dict = json.loads(file.read())
 
@@ -383,7 +362,7 @@ class User:
 
                 file.close()
 
-                edit_file = open(env + "\\Notepad\\Cache\\Edits\\" + str(note.id) + ".json", "w+")
+                edit_file = open(FileManager.edits + "\\" + str(note.id) + ".json", "w+")
 
                 edit_file.write(json_dump)
                 edit_file.close()

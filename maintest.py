@@ -1,5 +1,6 @@
 from database.database import Database
 from user.user import User
+from files.filemanager import FileManager
 
 
 class Main:
@@ -11,14 +12,15 @@ class Main:
 
     user = User.login("cc", "cc")
 
+    FileManager.checkFiles()
+
     user.pushOfflineNotes()
-    notesList = user.loadNotes()
     user.downloadNotes()
+    notesList = user.loadNotes()
 
     # user.createNoteAndPush("cc", "cc", "cc", "cc")
 
-    user.editNote(0, "bg", 2, "michel", "bisou22222s")
-
+    user.editNote(0, "bg", 2, "michel", "bonjour")
 
     for i in range(0, len(notesList)):
         print("")
@@ -28,4 +30,4 @@ class Main:
         print(notesList[i].category)
         print(notesList[i].creation_date)
 
-    #print(notes[3].content)
+    # print(notes[3].content)
