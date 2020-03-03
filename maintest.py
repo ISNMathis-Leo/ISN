@@ -1,9 +1,15 @@
 from database.database import Database
 from user.user import User
 from files.filemanager import FileManager
+from files.logs import Log
+from utils.date import DateUtil
 
 
 class Main:
+
+    Log.init()
+
+    Log.info("test")
 
     db = Database()
     db.connect()
