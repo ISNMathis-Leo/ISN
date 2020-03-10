@@ -1,7 +1,11 @@
 from datetime import datetime
 
-class DateUtil:
 
+class DateUtil:
     now = datetime.now()
 
-    current_time = now.strftime("%H:%M:%S")
+    @classmethod
+    def getCurrentDate(cls, dateFormat):
+
+        current_time = cls.now.strftime(dateFormat)
+        return current_time
